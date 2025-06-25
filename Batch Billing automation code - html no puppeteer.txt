@@ -1,0 +1,74 @@
+##Accepts Excel upload (via <input type="file">)
+##Uses xlsx.js to parse the spreadsheet
+##Reformats each row into the structure needed for ProviderOne Batch Billing - this is where a snag may be
+##Converts the data to a downloadable CSV (which can be uploaded into ProviderOne)
+##Optionally logs it in JSON for own processing or inspection
+
+<!DOCTYPE html>
+<html>
+<head>
+  <title>ProviderOne Batch Billing</title>
+</head>
+<body>
+  <h2>Upload Excel File for ProviderOne Batch Billing</h2>
+  <input type="file" id="excelFile" />
+  <button onclick="handleUpload()">Process File</button>
+  <pre id="output"></pre>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script>
+    async function handleUpload() {
+      const fileInput = document.getElementById('excelFile');
+      const file = fileInput.files[0];
+      if (!file) return alert('Please upload a file');
+
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        const data = new Uint8Array(e.target.result);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const jsonData = XLSX.utils.sheet_to_json(sheet);
+
+        const formattedClaims = jsonData.map((row, index) => ({
+          LineNumber: index + 1,
+          ProviderID: row.ProviderID || '',
+          ClientID: row.ClientID || '',
+          Authorization: row['Authorization#'] || '',
+          ServiceDateFrom: row.ServiceDateFrom || '',
+          ServiceDateTo: row.ServiceDateTo || '',
+          ServiceCode: row.ServiceCode || '',
+          Modifiers: row.Modifiers ? row.Modifiers.split(',') : [],
+          Units: row.Units || 1
+        }));
+
+        document.getElementById('output').textContent = JSON.stringify(formattedClaims, null, 2);
+
+        // Optionally, convert to CSV for download
+        const csv = convertToCSV(formattedClaims);
+        downloadCSV(csv, 'providerone_batch.csv');
+      };
+
+      reader.readAsArrayBuffer(file);
+    }
+
+    function convertToCSV(arr) {
+      const header = Object.keys(arr[0]).join(',');
+      const rows = arr.map(obj =>
+        Object.values(obj).map(v => Array.isArray(v) ? v.join('|') : v).join(',')
+      );
+      return [header, ...rows].join('\n');
+    }
+
+    function downloadCSV(content, filename) {
+      const blob = new Blob([content], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
+</body>
+</html>

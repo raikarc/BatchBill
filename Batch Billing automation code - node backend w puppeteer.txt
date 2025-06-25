@@ -1,0 +1,143 @@
+#### FOLDER STRUCTURE
+##### providerone-batch/
+#####├── public/
+#####│   └── index.html        <-- frontend (file upload)
+#####├── uploads/              <-- temp upload directory
+#####├── automate.js           <-- puppeteer automation
+#####├── server.js             <-- Node.js backend server
+#####├── .env                  <-- login secrets
+#####├── package.json
+
+##backend node structure
+## will open in http://localhost:3000
+#
+#
+
+# install dependencies
+npm init -y
+npm install express multer puppeteer xlsx dotenv
+
+# password info
+P1_USERNAME=your_providerone_username
+P1_PASSWORD=your_secure_password
+P1_LOGIN_URL=https://www.waproviderone.org
+P1_CLAIM_URL=https://www.waproviderone.org/submit-claims-batch
+
+# public/index.html
+# upload interface
+<!DOCTYPE html>
+<html>
+  <body>
+    <h2>Upload Excel File for ProviderOne Batch Billing</h2>
+    <form action="/upload" method="post" enctype="multipart/form-data">
+      <input type="file" name="claims" />
+      <button type="submit">Submit Claims</button>
+    </form>
+    <pre id="output"></pre>
+  </body>
+</html>
+
+# server.js
+# express backend
+require('dotenv').config();
+const express = require('express');
+const multer = require('multer');
+const path = require('path');
+const automateClaims = require('./automate');
+
+const app = express();
+const PORT = process.env.PORT || 3000;
+
+// Serve frontend
+app.use(express.static('public'));
+
+// Uploads directory
+const upload = multer({ dest: 'uploads/' });
+
+app.post('/upload', upload.single('claims'), async (req, res) => {
+  try {
+    const filePath = req.file.path;
+    await automateClaims(filePath); // Puppeteer automation
+    res.send('<h3>Claims submitted successfully! ✅</h3><a href="/">Go back</a>');
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('Something went wrong submitting claims.');
+  }
+});
+
+app.listen(PORT, () => {
+  console.log(`Server running on http://localhost:${PORT}`);
+});
+
+# automate.js
+# puppeteer automation
+const puppeteer = require('puppeteer');
+const XLSX = require('xlsx');
+require('dotenv').config();
+
+function readExcel(filePath) {
+  const workbook = XLSX.readFile(filePath);
+  const sheet = workbook.Sheets[workbook.SheetNames[0]];
+  const data = XLSX.utils.sheet_to_json(sheet);
+  return data.map((row, index) => ({
+    LineNumber: index + 1,
+    ProviderID: row.ProviderID || '',
+    ClientID: row.ClientID || '',
+    Authorization: row['Authorization#'] || '',
+    ServiceDateFrom: row.ServiceDateFrom || '',
+    ServiceDateTo: row.ServiceDateTo || '',
+    ServiceCode: row.ServiceCode || '',
+    Modifiers: row.Modifiers ? row.Modifiers.split(',') : [],
+    Units: row.Units || 1
+  }));
+}
+
+async function automateClaims(filePath) {
+  const claims = readExcel(filePath);
+  const browser = await puppeteer.launch({ headless: false });
+  const page = await browser.newPage();
+
+  // 1. Login
+  await page.goto(process.env.P1_LOGIN_URL);
+  await page.type('#username', process.env.P1_USERNAME);
+  await page.type('#password', process.env.P1_PASSWORD);
+  await Promise.all([
+    page.click('#login-button'), // Replace with actual selector
+    page.waitForNavigation()
+  ]);
+
+  // 2. Go to claim form
+  await page.goto(process.env.P1_CLAIM_URL);
+
+  // 3. Fill claims
+  for (let i = 0; i < claims.length; i++) {
+    const c = claims[i];
+    await page.type(`#providerID-${i}`, c.ProviderID);
+    await page.type(`#clientID-${i}`, c.ClientID);
+    await page.type(`#authorization-${i}`, c.Authorization);
+    await page.type(`#serviceFrom-${i}`, c.ServiceDateFrom);
+    await page.type(`#serviceTo-${i}`, c.ServiceDateTo);
+    await page.type(`#serviceCode-${i}`, c.ServiceCode);
+    await page.type(`#modifiers-${i}`, c.Modifiers.join(' '));
+    await page.type(`#units-${i}`, c.Units.toString());
+
+    if (i < claims.length - 1) {
+      await page.click('#addServiceLineButton');
+      await page.waitForTimeout(500);
+    }
+  }
+
+  // 4. Submit form
+  await page.click('#submitClaimButton');
+  await page.waitForNavigation();
+
+  console.log('✅ Claims submitted');
+  await browser.close();
+}
+
+module.exports = automateClaims;
+
+# to run
+node server.js
+
+
