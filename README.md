@@ -76,10 +76,12 @@ CSV file ready for upload to the ProviderOne batch submission portal.
 git clone <repo_url>
 cd providerone-batch
 npm install
-
+```
 ### How to Run
+```
 node server.js
-open: http://localhost:3000
+http://localhost:3000
+```
 Upload your Excel billing file, and the tool will:
 - Log in to ProviderOne
 - Fill each service line
