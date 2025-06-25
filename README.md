@@ -1,7 +1,11 @@
 # ProviderOne Batch Billing Automation
 
-**An internship project to automate the batch billing process for Washington State's ProviderOne portal.**  
-Supports services like **Respite** and **Specialized Habilitation**, used by DSHS providers.
+**An internship project to automate the batch billing process within the ProviderOne portal**  
+I created this project to automate the batch billing function for the company I interned at, Inclusive Technology of WA. 
+# About Inclusive Tech of WA (ITW):
+ITW is a non-profit that offers tech life skills classes to underserved communities, like disabled students. They accept WA DSHS Services like Respite and Specialized habilitation as payment for these classes. To bill these clients, the ITW team must complete lengthy and redundant manual entries in ProviderOne, the WA DSHS billing site.
+# Project Goal:
+Responding to this lack of effiency, I programmed this project to streamline the billing process and enable our small non-profit team to shift their focuses elsewhere. The lengthy manual billing process also capped the number of students ITW was able to take, and  I wanted to automate the billing process so we could serve more students as well.
 
 ---
 
