@@ -1,4 +1,4 @@
-# 🧾 ProviderOne Batch Billing Automation
+# ProviderOne Batch Billing Automation
 
 **An internship project to automate the batch billing process for Washington State's ProviderOne portal.**  
 Supports services like **Respite** and **Specialized Habilitation**, used by DSHS providers.
@@ -31,12 +31,12 @@ This tool automates the intake and formatting of billing data for submission to 
 
 ## 🖥 Version 1: Frontend-Only (HTML + JS)
 
-### 🔧 Tech Used
+### Tech Used
 - HTML5 + JavaScript
 - [`xlsx.js`](https://github.com/SheetJS/sheetjs) for Excel parsing
 
 
-### 🏃‍♀️ How to Run
+### How to Run
 1. Open `index.html` in your browser.
 2. Upload your Excel file.
 3. View the formatted data and download the `.csv`.
@@ -73,7 +73,7 @@ git clone <repo_url>
 cd providerone-batch
 npm install
 
-**### 🏃‍♀️ How to Run**
+### How to Run
 node server.js
 open: http://localhost:3000
 Upload your Excel billing file, and the tool will:
