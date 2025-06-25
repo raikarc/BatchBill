@@ -29,7 +29,7 @@ This tool automates the intake and formatting of billing data for submission to 
 
 ---
 
-## 🖥 Version 1: Frontend-Only (HTML + JS)
+## Version 1: Frontend-Only (HTML + JS)
 
 ### Tech Used
 - HTML5 + JavaScript
@@ -56,7 +56,7 @@ CSV file ready for upload to the ProviderOne batch submission portal.
 
 ---
 
-## 🖥 Version 2: Fullstack (Node.js + Puppeteer)
+## Version 2: Fullstack (Node.js + Puppeteer)
 
 ### Tech Used
 - Node.js + Express
